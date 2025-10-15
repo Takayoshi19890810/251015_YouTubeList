@@ -1,0 +1,2 @@
+# 251015_YouTubeList
+Youtubeの動画リスト_エクセル版
