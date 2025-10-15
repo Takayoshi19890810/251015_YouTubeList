@@ -1,1 +1,43 @@
+name: YouTube Video Tracker
 
+on:
+  schedule:
+    - cron: '0 */3 * * *'  # 3時間おき（UTC基準）
+  workflow_dispatch:        # 手動実行も可
+
+permissions:
+  contents: write           # リポジトリへのpush権限
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run script
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: python main.py
+
+      - name: Commit and push Excel if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Actions"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add youtube_videos.xlsx
+            git commit -m "Update Excel: YouTube videos (every 3h)"
+            git push
+          else
+            echo "No changes to commit"
+          fi
